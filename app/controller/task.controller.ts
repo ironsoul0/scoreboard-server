@@ -1,6 +1,6 @@
 import { ObjectId } from 'bson'
-import { Competition, ICompetition } from './competition'
-import { ITask } from './task'
+import { Competition, ICompetition } from '../model/competition.model'
+import { ITask } from '../model/task.model'
 
 export async function create(id: ObjectId, round: number, data: ITask): Promise<ITask[]> {
   let competition = await Competition.findById(id)

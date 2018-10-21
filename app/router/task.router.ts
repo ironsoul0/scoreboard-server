@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { create, get, remove, update } from './task.controller'
+import { create, get, remove, update } from '../controller/task.controller'
 export const taskRouter = Router()
 
 taskRouter.get('/', async (req, res) => {

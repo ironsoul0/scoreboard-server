@@ -1,5 +1,5 @@
 import { ObjectId } from 'bson'
-import { Competition, ICompetition } from './competition'
+import { Competition, ICompetition } from '../model/competition.model'
 
 export async function create(data: ICompetition): Promise<ICompetition> {
   const set = {

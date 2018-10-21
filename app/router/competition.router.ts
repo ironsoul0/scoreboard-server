@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { create, get, getAll, remove, update } from './competition.controller'
+import { create, get, getAll, remove, update } from '../controller/competition.controller'
 export const competitionRouter = Router()
 
 competitionRouter.get('/', async (req, res) => {

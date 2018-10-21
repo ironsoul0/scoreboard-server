@@ -1,9 +1,9 @@
 import bodyParser from 'body-parser'
 import express, {Application} from 'express'
 import mongoose from 'mongoose'
-import { Competition, ICompetition } from './competition'
-import { competitionRouter } from './competition.router'
-import { taskRouter} from './task.router'
+import { Competition, ICompetition } from './model/competition.model'
+import { competitionRouter } from './router/competition.router'
+import { taskRouter} from './router/task.router'
 
 (async () => {
   const app: Application = express()
@@ -18,9 +18,3 @@ import { taskRouter} from './task.router'
   })
 })()
 
-/* Requests
-  {
-    id: (delete or findById),
-    data: (payload)
-  }
-*/

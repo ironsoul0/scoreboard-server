@@ -1,6 +1,6 @@
 import { Double } from 'bson'
 import { Document, Model, model, Schema, Types } from 'mongoose'
-import { ITask, TaskSchema } from './task'
+import { ITask, TaskSchema } from './task.model'
 
 export interface IRound {
   start: Date
