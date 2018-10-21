@@ -5,7 +5,7 @@ import mongoose from 'mongoose'
 import { error, log } from './logger'
 import { competitionRouter } from './router/competition.router'
 import { taskRouter } from './router/task.router'
-
+import { userRouter } from './router/user.router'
 const mongooseurl = 'mongodb://localhost:27017/test';
 
 (async () => {
@@ -22,6 +22,7 @@ const mongooseurl = 'mongodb://localhost:27017/test';
     })
     app.use('/competition', competitionRouter)
     app.use('/competition/task', taskRouter)
+    app.use('/account', userRouter)
 
     log(`Connecting to MongoDB at ${chalk.blue(mongooseurl)}`)
     await mongoose.connect('mongodb://localhost:27017/test', {useNewUrlParser: true})

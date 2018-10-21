@@ -10,7 +10,7 @@ export const Roles: string[] = [
 ]
 
 export interface IUserRegisterData {
-  username: string,
+  email: string,
   name: {
     first: string,
     middle?: string,
@@ -21,7 +21,7 @@ export interface IUserRegisterData {
 }
 
 export interface IUser extends Document {
-  username: string,
+  email: string,
   name: {
     first: string,
     middle?: string,
@@ -29,18 +29,19 @@ export interface IUser extends Document {
   },
   role: string,
   hash: string,
-  salt: string,
   blocked: boolean,
+  verified: boolean,
+  verificationURL: string,
   token?: string,
   created: Date,
 }
 
 export const UserSchema = new Schema({
-  username: {type: String, required: 'Enter username'},
+  email: { type: String, required: 'Enter username', unique: true },
   name: {
-    first: {type: String, requred: 'Enter first name'},
-    middle: {type: String},
-    last: {type: String},
+    first: { type: String, requred: 'Enter first name' },
+    middle: { type: String },
+    last: { type: String },
   },
   role: {
     type: String,
@@ -48,10 +49,11 @@ export const UserSchema = new Schema({
     requred: 'Enter role',
   },
   hash: String,
-  salt: String,
   token: String,
-  blocked: {type: Boolean, default: false},
-  created: {type: Date, required: 'Enter created time'},
+  blocked: { type: Boolean, default: false },
+  verified: { type: Boolean, default: false },
+  verificationURL: String,
+  created: Date,
 })
 
 UserSchema.pre<IUser>('init', function() {

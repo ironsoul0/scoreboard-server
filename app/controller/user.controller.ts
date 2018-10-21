@@ -1,80 +1,133 @@
 import bcrypt from 'bcrypt-nodejs'
+import crypto from 'crypto'
 import fs from 'fs'
 import jwt from 'jsonwebtoken'
+import nodemailer from 'nodemailer'
+import validator from 'validator'
 import { IUser, IUserRegisterData, User } from '../model/user.model'
-function generateHash(password: string, salt: string): string {
-  const hash = bcrypt.hashSync(password, salt)
+
+const pass = fs.readFileSync('.gmailsecret').toString()
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'scoreboard.noreply@gmail.com',
+    pass,
+  },
+})
+function generateHash(password: string): string {
+  const hash = bcrypt.hashSync(password)
   return hash
 }
 
-function checkHash(password: string, hash: string, salt: string): boolean {
-  return bcrypt.compareSync(password + salt, hash)
-}
-
-function generateSalt(): string {
-  return bcrypt.genSaltSync()
+function checkHash(password: string, hash: string): boolean {
+  return bcrypt.compareSync(password, hash)
 }
 
 function generateToken(payload: object): string {
   const key = fs.readFileSync('.secret').toString()
-  const token = jwt.sign(payload, key, {
-    algorithm: 'RS256',
-    expiresIn: '1d',
+  const token = jwt.sign({ data: payload }, key, {
+    algorithm: 'HS512',
+    expiresIn: 60 * 60 * 24,
   })
   return token
 }
 
 export async function register(data: IUserRegisterData) {
   if (data.role !== 'Jury' && data.role !== 'Competitor') {
-    throw { code: 400, message: `Cannot register user ${data.username} with role ${data.role}` }
+    throw { code: 400, message: `Cannot register user ${data.email} with role ${data.role}` }
   }
-  if (data.password == null || data.username == null || data.name == null || data.name.first == null) {
-    throw { code: 400, message: `Cannot register user ${data.username}, malformed request` }
+  if (data.password == null || data.email == null || data.name == null || data.name.first == null) {
+    throw { code: 400, message: `Cannot register user ${data.email}, malformed request` }
   }
   if (data.password.length < 8) {
-    throw { code: 400, message: `Cannot register user ${data.username}, password is too short` }
+    throw { code: 400, message: `Cannot register user ${data.email}, password is too short` }
   }
-  if (data.username.length < 6) {
-    throw { code: 400, message: `Cannot register user ${data.username}, username is too short` }
+  if (!validator.isEmail(data.email)) {
+    throw { code: 400, message: `Cannot register user ${data.email}, malformed email` }
   }
-  const ifUserWasRegisteredBefore = await User.findOne({ username: data.username })
-  if (ifUserWasRegisteredBefore) {
-    throw { code: 400, message: `Cannot register user ${data.username}, user already exists` }
+  const ifUserWasRegisteredBefore = await User.findOne({ email: data.email })
+  if (ifUserWasRegisteredBefore != null) {
+    throw { code: 400, message: `Cannot register user ${data.email}, user already exists` }
   }
-  const salt = generateSalt()
-  const hash = generateHash(data.password, salt)
+  const hash = generateHash(data.password)
 
   let user = await User.create({
-    username: data.username,
+    email: data.email,
     name: data.name,
     role: data.role,
     hash,
-    salt,
     blocked: false,
-    token: generateToken({ username: data.username, name: data.name, role: data.role }),
-  } as IUser)
-  const token = generateToken({ username: data.username, name: data.name, role: data.role })
+    verified: false,
+    verificationURL: `http://localhost:8080/account/verify/${data.email}/${crypto.randomBytes(32).toString('hex')}`,
+    token: generateToken({ email: data.email, name: data.name, role: data.role }),
+  })
+  const token = generateToken({ email: data.email, name: data.name, role: data.role })
   user.token = token
 
   user = await user.save()
+
+  await sendVerificationMail(data.email, token)
   return { token }
 }
 
-export async function login(username: string, password: string) {
-  let user = await User.findOne({ username })
+export async function login(email: string, password: string) {
+  let user = await User.findOne({ email })
   if (!user) {
-    throw { code: 400, message: `Incorrent username or password` }
+    throw { code: 400, message: `Incorrent email or password` }
   }
 
   const hash = user.hash
-  const salt = user.salt
 
-  if (checkHash(password, hash, salt)) {
-    const token = generateToken({ username: user.username, name: user.name, role: user.role })
+  if (checkHash(password, hash)) {
+    const token = generateToken({ email: user.email, name: user.name, role: user.role })
     user.token = token
     user = await user.save()
-    return { token }
+    return { token, verified: user.verified }
   } else {
-    throw { code: 400, message: `Incorrent username or password` }
+    throw { code: 400, message: `Incorrent email or password` }
   }
+}
+
+export async function checkToken(email: string, token: string) {
+  const user = await User.findOne({ email })
+  if (!user) {
+    throw { code: 400, message: `Incorrent email or password` }
+  }
+
+  return user.token === token
+}
+
+export async function sendVerificationMail(email: string, token: string) {
+  const user = await User.findOne({ email })
+  if (!user) {
+    throw { code: 400, message: `Incorrent email or password` }
+  }
+  if (!checkToken(email, token)) {
+    throw { code: 400, message: `Incorrent email or password` }
+  }
+
+  await transporter.sendMail({
+    from: 'scoreboard.noreply@gmail.com',
+    to: user.email,
+    subject: 'Verify your account on Scoreboard',
+    html: `
+      <h2>Hey! Welcome to Scoreboard!</h2>
+      <p>Before starting, you need to verify your email address. Please, do so by clicking link below.</p>
+      <a href="${user.verificationURL}">Here!</a>
+    `,
+  })
+}
+
+export async function verifyEmail(email: string, bytes: string) {
+  const user = await User.findOne({ email })
+  if (!user) {
+    throw { code: 400, message: `Incorrent email or password` }
+  }
+  const uri: string[] = user.verificationURL.split('/')
+  if (uri[uri.length - 1] === bytes) {
+    user.verified = true
+    await user.save()
+    return { verified: true }
+  }
+  throw { code: 400, message: 'Incorrect bytes' }
 }
