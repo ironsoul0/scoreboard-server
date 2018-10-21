@@ -31,16 +31,11 @@ export async function update(data: ICompetition): Promise<ICompetition> {
   if (!competition) {
     throw { code: 404, message: `Competition with id ${data._id} was not found` }
   }
-  const set = {
-    name: data.name || competition.name,
-    description: data.description || competition.description,
-    location: data.location || competition.location,
-    rounds: data.rounds || competition.rounds,
-  }
-  competition = await Competition.findByIdAndUpdate(data._id, { $set: set }, { new: true })
-  if (!competition) {
-    throw { code: 404, message: `Competition with id ${data._id} was not found` }
-  }
+  competition.name = data.name || competition.name
+  competition.description = data.description || competition.description
+  competition.location = data.location || competition.location
+  competition.rounds = data.rounds || competition.rounds
+  competition = await competition.save()
   return competition
 }
 

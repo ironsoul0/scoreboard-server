@@ -12,7 +12,7 @@ competitionRouter.get('/', async (req, res) => {
 })
 competitionRouter.get('/id', async (req, res) => {
   try {
-    const competition = await get(req.body.data)
+    const competition = await get(req.body.id)
     res.status(200).send(competition)
   } catch (e) {
     res.status(400).send(e)
@@ -36,7 +36,7 @@ competitionRouter.put('/', async (req, res) => {
 })
 competitionRouter.delete('/', async (req, res) => {
   try {
-    const competition = await remove(req.body.data)
+    const competition = await remove(req.body.id)
     res.status(200).send(competition)
   } catch (e) {
     res.status(400).send(e)
