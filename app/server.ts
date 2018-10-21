@@ -14,16 +14,17 @@ const mongooseurl = 'mongodb://localhost:27017/test';
     const app: Application = express()
     app.use(bodyParser.json())
     app.use((req, res, next) => {
-      log(`Requested ${chalk.blue(req.method)} ${chalk.blue(req.url)}`,
-          `${chalk.cyan(JSON.stringify(req.body))} by ${chalk.green(req.ip)}`,
-          `with ${chalk.blue(req.rawHeaders.toString())}`)
+      log(`Requested: ${chalk.yellow(req.method)} ${chalk.blue(req.url)}`,
+          `By: ${chalk.green(req.ip)}`,
+          `Payload: ${chalk.cyan(JSON.stringify(req.body))}`,
+          `Cookies: ${chalk.cyan(req.rawHeaders.toString())}`)
       next()
     })
     app.use('/competition', competitionRouter)
     app.use('/competition/task', taskRouter)
 
     log(`Connecting to MongoDB at ${chalk.blue(mongooseurl)}`)
-    await mongoose.connect('mongodb://localhost:27017/test')
+    await mongoose.connect('mongodb://localhost:27017/test', {useNewUrlParser: true})
     log(`Connected to MongoDB at ${chalk.blue(mongooseurl)}`)
 
     const port = process.env.PORT || 8080

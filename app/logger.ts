@@ -9,7 +9,7 @@ export function log(...message: string[]) {
   }
   message.forEach((msg, i) => {
     if (i === 0) {
-      console.log(`${chalk.bgWhite(unix)}: ${msg}`)
+      console.log(`${chalk.gray(unix)}: ${msg}`)
     } else {
       console.log(`${spacing}${msg}`)
     }
