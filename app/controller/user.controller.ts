@@ -6,6 +6,7 @@ import nodemailer from 'nodemailer'
 import validator from 'validator'
 import { IUser, IUserRegisterData, User } from '../model/user.model'
 
+const baseURL = 'http://localhost:8080'
 const pass = fs.readFileSync('.gmailsecret').toString()
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -58,7 +59,7 @@ export async function register(data: IUserRegisterData) {
     hash,
     blocked: false,
     verified: false,
-    verificationURL: `http://localhost:8080/account/verify/${data.email}/${crypto.randomBytes(32).toString('hex')}`,
+    verificationURL: `${baseURL}/account/verify/${data.email}/${crypto.randomBytes(32).toString('hex')}`,
     token: generateToken({ email: data.email, name: data.name, role: data.role }),
   })
   const token = generateToken({ email: data.email, name: data.name, role: data.role })
