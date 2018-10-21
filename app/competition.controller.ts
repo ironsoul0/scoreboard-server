@@ -10,7 +10,13 @@ export async function create(data: ICompetition): Promise<ICompetition> {
   }
   let competition = new Competition(set)
   competition = await competition.save()
-  return competition
+  return {
+    _id: competition._id,
+    name: competition.name,
+    description: competition.description,
+    location: competition.location,
+    rounds: competition.rounds,
+  } as ICompetition
 }
 
 export async function get(id: ObjectId): Promise<ICompetition> {
@@ -18,11 +24,17 @@ export async function get(id: ObjectId): Promise<ICompetition> {
   if (!competition) {
     throw { code: 404, message: `Competition with id ${id} was not found` }
   }
-  return competition
+  return {
+    _id: competition._id,
+    name: competition.name,
+    description: competition.description,
+    location: competition.location,
+    rounds: competition.rounds,
+  } as ICompetition
 }
 
 export async function getAll(): Promise<ICompetition[]> {
-  const competitions = await Competition.find()
+  const competitions = await Competition.find({}, { tasks: 0 })
   return competitions
 }
 
@@ -36,7 +48,13 @@ export async function update(data: ICompetition): Promise<ICompetition> {
   competition.location = data.location || competition.location
   competition.rounds = data.rounds || competition.rounds
   competition = await competition.save()
-  return competition
+  return {
+    _id: competition._id,
+    name: competition.name,
+    description: competition.description,
+    location: competition.location,
+    rounds: competition.rounds,
+  } as ICompetition
 }
 
 export async function remove(id: ObjectId): Promise<ICompetition> {
@@ -44,5 +62,11 @@ export async function remove(id: ObjectId): Promise<ICompetition> {
   if (!competition) {
     throw { code: 404, message: `Competition with id ${id} was not found` }
   }
-  return competition
+  return {
+    _id: competition._id,
+    name: competition.name,
+    description: competition.description,
+    location: competition.location,
+    rounds: competition.rounds,
+  } as ICompetition
 }
