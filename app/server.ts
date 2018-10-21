@@ -1,20 +1,28 @@
 import bodyParser from 'body-parser'
-import express, {Application} from 'express'
+import chalk from 'chalk'
+import express, { Application } from 'express'
 import mongoose from 'mongoose'
-import { Competition, ICompetition } from './model/competition.model'
+import { error, log } from './logger'
 import { competitionRouter } from './router/competition.router'
-import { taskRouter} from './router/task.router'
+import { taskRouter } from './router/task.router'
+
+const mongooseurl = 'mongodb://localhost:27017/test';
 
 (async () => {
-  const app: Application = express()
-  app.use(bodyParser.json())
-  app.use('/competition', competitionRouter)
-  app.use('/competition/task', taskRouter)
-  await mongoose.connect('mongodb://localhost:27017/test')
+  try {
+    const app: Application = express()
+    app.use(bodyParser.json())
+    app.use('/competition', competitionRouter)
+    app.use('/competition/task', taskRouter)
+    log(`Connecting to Mongoose at ${chalk.blue(mongooseurl)}`)
+    await mongoose.connect('mongodb://localhost:27017/test')
+    log(`Connected to Mongoose at ${chalk.blue(mongooseurl)}`)
 
-  const port = process.env.PORT || 8080
-  app.listen(port, () => {
-    console.log('Listening on port ' + port)
-  })
+    const port = process.env.PORT || 8080
+    app.listen(port, () => {
+      log(`Listening at port ${chalk.blue(port.toString())}`)
+    })
+  } catch (e) {
+    error(e)
+  }
 })()
-

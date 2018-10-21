@@ -5,9 +5,16 @@
     ],
     "jsRules": {},
     "rules": {
-        "quotemark": [true, "single"],
-        "semicolon": [true, "never"],
-        "object-literal-sort-keys": false
+        "quotemark": [
+            true,
+            "single"
+        ],
+        "semicolon": [
+            true,
+            "never"
+        ],
+        "object-literal-sort-keys": false,
+        "no-console": false
     },
     "rulesDirectory": []
 }
