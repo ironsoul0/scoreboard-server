@@ -4,16 +4,20 @@
   "description": "",
   "main": "build/index.js",
   "dependencies": {
+    "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.18.3",
     "chalk": "^2.4.1",
     "cookie-parser": "^1.4.3",
     "express": "^4.16.4",
+    "jsonwebtoken": "^8.3.0",
     "moment": "^2.22.2",
     "mongodb": "^3.1.8",
     "mongoose": "^5.3.4"
   },
   "devDependencies": {
+    "@types/bcrypt-nodejs": "0.0.30",
     "@types/express": "^4.16.0",
+    "@types/jsonwebtoken": "^7.2.8",
     "@types/mongoose": "^5.2.19",
     "node-tsc": "0.0.14",
     "ts-node": "^7.0.1",
