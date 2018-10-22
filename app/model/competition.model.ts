@@ -11,6 +11,8 @@ export interface ICompetition extends Document {
   description: string
   location: string
   rounds: IRound[]
+  creator: string,
+  juries: string[],
   tasks: Array<Types.DocumentArray<ITask>>
 }
 
@@ -19,6 +21,8 @@ export const CompetitionSchema = new Schema({
   description: {type: String, required: 'Enter description'},
   location: {type: String, required: 'Enter location'},
   rounds: { type: [{ _id: false, start: Date, end: Date }], default: [] },
+  creator: String,
+  juries: [String],
   tasks: {type: [[TaskSchema]], default: []},
 })
 

@@ -1,18 +1,17 @@
 import bcrypt from 'bcrypt-nodejs'
 import crypto from 'crypto'
-import fs from 'fs'
 import jwt from 'jsonwebtoken'
 import nodemailer from 'nodemailer'
 import validator from 'validator'
 import { IUser, IUserRegisterData, User } from '../model/user.model'
+import { secret } from '../secret'
 
 const baseURL = 'http://localhost:8080'
-const pass = fs.readFileSync('.gmailsecret').toString()
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: 'scoreboard.noreply@gmail.com',
-    pass,
+    pass: secret.mail,
   },
 })
 function generateHash(password: string): string {
@@ -25,8 +24,7 @@ function checkHash(password: string, hash: string): boolean {
 }
 
 function generateToken(payload: object): string {
-  const key = fs.readFileSync('.secret').toString()
-  const token = jwt.sign({ data: payload }, key, {
+  const token = jwt.sign({ data: payload }, secret.jwt, {
     algorithm: 'HS512',
     expiresIn: 60 * 60 * 24,
   })
@@ -52,6 +50,7 @@ export async function register(data: IUserRegisterData) {
   }
   const hash = generateHash(data.password)
 
+  const token = generateToken({ email: data.email, name: data.name, role: data.role, verified: false })
   let user = await User.create({
     email: data.email,
     name: data.name,
@@ -60,10 +59,8 @@ export async function register(data: IUserRegisterData) {
     blocked: false,
     verified: false,
     verificationURL: `${baseURL}/account/verify/${data.email}/${crypto.randomBytes(32).toString('hex')}`,
-    token: generateToken({ email: data.email, name: data.name, role: data.role }),
+    token,
   })
-  const token = generateToken({ email: data.email, name: data.name, role: data.role })
-  user.token = token
 
   user = await user.save()
 
@@ -80,7 +77,7 @@ export async function login(email: string, password: string) {
   const hash = user.hash
 
   if (checkHash(password, hash)) {
-    const token = generateToken({ email: user.email, name: user.name, role: user.role })
+    const token = generateToken({ email: user.email, name: user.name, role: user.role, verified: user.verified })
     user.token = token
     user = await user.save()
     return { token, verified: user.verified }
@@ -105,6 +102,9 @@ export async function sendVerificationMail(email: string, token: string) {
   }
   if (!checkToken(email, token)) {
     throw { code: 400, message: `Incorrent email or password` }
+  }
+  if (user.verified) {
+    throw { code: 400, message: `This E-Mail address is already verified` }
   }
 
   await transporter.sendMail({
